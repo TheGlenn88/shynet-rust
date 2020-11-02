@@ -1,0 +1,8 @@
+application_port: 8000
+app_url: "http://localhost:8000"
+database:
+  host: "localhost"
+  port: 5432
+  username: "mike"
+  password: "kes3ujav"
+  database_name: "shynet_db"
