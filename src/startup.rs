@@ -2,6 +2,8 @@ use crate::routes::{
     health_check, ingress_pixel_get, ingress_script_get, ingress_script_post,
 };
 
+use actix_web::http::header;
+
 use actix_cors::Cors;
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
@@ -25,16 +27,24 @@ pub fn run(listener: TcpListener, db_pool: PgPool, mobc_pool: MobcPool) -> Resul
     let server = HttpServer::new(move || {
         let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
 
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+            .allowed_header(header::CONTENT_TYPE)
+            .supports_credentials()
+            .max_age(3600);
+
         App::new()
             .service(
                 web::resource("/ingress/{site_uuid}/script.js")
-                    .wrap(Cors::new().allowed_methods(vec!["GET", "POST"]).finish())
+                .wrap(cors)
+
                     .route(web::get().to(ingress_script_get))
                     .route(web::post().to(ingress_script_post)),
             )
             .service(
                 web::resource("/ingress/{site_uuid}/pixel.gif")
-                    .wrap(Cors::new().allowed_methods(vec!["GET"]).finish())
                     .route(web::get().to(ingress_pixel_get)),
             )
             .data(AppData { tmpl: tera })

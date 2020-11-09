@@ -12,6 +12,7 @@ use sqlx::PgPool;
 use std::error::Error;
 use tera::Context;
 use uuid::Uuid;
+use woothee::parser::Parser;
 
 use crate::mobc_pool;
 
@@ -184,6 +185,9 @@ pub async fn ingress_script_post(
     // hash the concatenated ip + user agent
     hasher.update(format!("{}{}", ip[0], get_user_agent(&req).unwrap()));
 
+    let parser = Parser::new();
+    let ua = parser.parse(get_user_agent(&req).unwrap()).unwrap();
+
     // create a hex string of the hash
     let request_hash = hex::encode(hasher.finalize());
 
@@ -211,14 +215,14 @@ pub async fn ingress_script_post(
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
                 "#,
                 uuid,
-                request_hash,
+                "",
                 time,
                 time,
+                get_user_agent(&req).unwrap(),
+                ua.name,
                 "",
-                "",
-                "",
-                "",
-                "",
+                ua.browser_type,
+                ua.os,
                 v4_net,
                 "",
                 "",
