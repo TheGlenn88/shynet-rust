@@ -3,6 +3,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use base64;
 use chrono::{Duration, Utc};
 use hex;
+use maxminddb::geoip2;
 use mobc::Pool;
 use mobc_redis::RedisConnectionManager;
 use sha2::{Digest, Sha256};
@@ -10,13 +11,14 @@ use sql_builder::prelude::*;
 use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgPool;
 use std::error::Error;
+use std::net::IpAddr;
 use tera::Context;
 use uuid::Uuid;
 use woothee::parser::Parser;
 
 use crate::mobc_pool;
 
-use crate::{db_error::DatabaseError, startup::AppData};
+use crate::startup::AppData;
 
 pub type MobcPool = Pool<RedisConnectionManager>;
 
@@ -186,7 +188,20 @@ pub async fn ingress_script_post(
     hasher.update(format!("{}{}", ip[0], get_user_agent(&req).unwrap()));
 
     let parser = Parser::new();
-    let ua = parser.parse(get_user_agent(&req).unwrap()).unwrap();
+
+    let user_agent_name: &str;
+    let user_agent_browser_type: &str;
+    let user_agent_os: &str;
+
+    if let Some(user_agent) = parser.parse(get_user_agent(&req).unwrap()) {
+        user_agent_name = user_agent.name;
+        user_agent_browser_type = user_agent.browser_type;
+        user_agent_os = user_agent.os;
+    } else {
+        user_agent_name = "";
+        user_agent_browser_type = "";
+        user_agent_os = "";
+    }
 
     // create a hex string of the hash
     let request_hash = hex::encode(hasher.finalize());
@@ -203,29 +218,40 @@ pub async fn ingress_script_post(
 
     let uuid = Uuid::new_v4();
 
+    let city_reader = maxminddb::Reader::open_readfile("GeoLite2-City.mmdb").unwrap();
+
+    let geoip: IpAddr = ip[0].parse().unwrap();
+
+    let country = match city_reader.lookup::<geoip2::Country>(geoip) {
+        Ok(c) => c.country.unwrap().iso_code,
+        Err(_e) => None,
+    };
+
     if let Ok(s) = session_uuid_select {
         if s.len() > 0 {
             let fetched_uuid = s[0].uuid;
             println!("{:?}", fetched_uuid);
         } else {
-
             let result = sqlx::query!(
                 r#"
-                INSERT INTO analytics_session (uuid, identifier, start_time, last_seen, user_agent, browser, device, device_type, os, ip, asn, country, time_zone, service_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                INSERT INTO analytics_session (uuid, identifier, start_time, last_seen, user_agent, browser, device, device_type, os, ip, asn, country, longitude, latitude, time_zone, service_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
                 "#,
                 uuid,
                 "",
                 time,
                 time,
                 get_user_agent(&req).unwrap(),
-                ua.name,
+                user_agent_name,
                 "",
-                ua.browser_type,
-                ua.os,
+                user_agent_browser_type,
+                user_agent_os,
                 v4_net,
                 "",
-                "",
+                // Gamechanger! found that you can pass an option, Some being the value None being null...
+                country,
+                Option::<f64>::None,
+                Option::<f64>::None,
                 "",
                 service_id.unwrap()
             )
