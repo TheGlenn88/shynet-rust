@@ -248,7 +248,7 @@ pub async fn ingress_script_post(
                 user_agent_os,
                 v4_net,
                 "",
-                // Gamechanger! found that you can pass an option, Some being the value None being null...
+                // Gamechanger! Found that you can pass an Option<T>, Some being the value None being null...
                 country,
                 Option::<f64>::None,
                 Option::<f64>::None,
