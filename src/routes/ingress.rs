@@ -2,6 +2,7 @@ use actix_web::http::header::{DNT, USER_AGENT};
 use actix_web::{web, HttpRequest, HttpResponse};
 use base64;
 use chrono::{Duration, Utc};
+use dotenv;
 use hex;
 use maxminddb::geoip2;
 use mobc::Pool;
@@ -21,8 +22,6 @@ use crate::mobc_pool;
 use crate::startup::AppData;
 
 pub type MobcPool = Pool<RedisConnectionManager>;
-
-use crate::configuration::get_configuration;
 
 #[derive(
     Default,
@@ -302,17 +301,16 @@ pub async fn ingress_script_get(
     data: web::Data<AppData>,
     req: HttpRequest,
 ) -> Result<HttpResponse, HttpResponse> {
-    let configuration = get_configuration().expect("Failed to read configuration.");
     let site_uuid = req.match_info().get("site_uuid").unwrap();
 
     let mut ctx = Context::new();
     //TODO: make site_uuid check for a valid site
     ctx.insert("site_uuid", site_uuid);
-    ctx.insert("app_url", &configuration.app_url);
+    ctx.insert("app_url", dotenv!("APP_URL"));
 
     //TODO: make heartbeat configurable
     ctx.insert("heartbeat_frequency", &5000);
-    let rendered = data.tmpl.render("analytics/script.js", &ctx).unwrap();
+    let rendered = data.tmpl.render("./analytics/script.js", &ctx).unwrap();
 
     // TODO: log a session
     Ok(HttpResponse::Ok().body(rendered))

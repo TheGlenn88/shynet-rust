@@ -1,0 +1,104 @@
+{
+  "db": "PostgreSQL",
+  "7aebf93fad81b611569a3131843fbd377e23c0f28b72842cd6671da0729f0bda": {
+    "query": "\n    INSERT INTO analytics_hit (initial, start_time, last_seen, heartbeats, tracker, location, referrer, load_time, session_id)\n    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n    RETURNING id\n    ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Timestamptz",
+          "Timestamptz",
+          "Int4",
+          "Text",
+          "Text",
+          "Text",
+          "Float8",
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "952c6ddbea33dee3d49743439c2a5bd79cc6b6aa314dba87edc67d0f885514e6": {
+    "query": "\n                INSERT INTO analytics_session (uuid, identifier, start_time, last_seen, user_agent, browser, device, device_type, os, ip, asn, country, longitude, latitude, time_zone, service_id)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)\n                ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Timestamptz",
+          "Timestamptz",
+          "Text",
+          "Text",
+          "Text",
+          "Varchar",
+          "Text",
+          "Inet",
+          "Text",
+          "Text",
+          "Float8",
+          "Float8",
+          "Text",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "b3c60dbc9888206b6210b6465476ecd54982f85ef9d89a8528bbb867f6f6f4f9": {
+    "query": "SELECT uuid FROM analytics_session WHERE identifier = $1 and start_time > $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Timestamptz"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "c4600be6dac83c2c050b153c0f3e21ce9d5fab1bbc01e658c7f4bf6730ee32b9": {
+    "query": "\n                INSERT INTO analytics_session (uuid, identifier, start_time, last_seen, user_agent, browser, device, device_type, os, ip, asn, country, time_zone, service_id)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)\n                ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Timestamptz",
+          "Timestamptz",
+          "Text",
+          "Text",
+          "Text",
+          "Varchar",
+          "Text",
+          "Inet",
+          "Text",
+          "Text",
+          "Text",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  }
+}

@@ -455,6 +455,7 @@ dependencies = [
  "chrono",
  "config",
  "dotenv",
+ "dotenv_codegen",
  "hex",
  "hex-literal",
  "listenfd",
@@ -1087,6 +1088,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
+name = "dotenv_codegen"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56966279c10e4f8ee8c22123a15ed74e7c8150b658b26c619c53f4a56eb4a8aa"
+dependencies = [
+ "dotenv_codegen_implementation",
+ "proc-macro-hack",
+]
+
+[[package]]
+name = "dotenv_codegen_implementation"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53e737a3522cd45f6adc19b644ce43ef53e1e9045f2d2de425c1f468abd4cf33"
+dependencies = [
+ "dotenv",
+ "proc-macro-hack",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "dtoa"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1097,6 +1121,9 @@ name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
+dependencies = [
+ "serde 1.0.116",
+]
 
 [[package]]
 name = "encoding_rs"
@@ -2780,6 +2807,7 @@ version = "1.0.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "164eacbdb13512ec2745fb09d51fd5b22b0d65ed294a1dcf7285a360c80a675c"
 dependencies = [
+ "indexmap",
  "itoa",
  "ryu",
  "serde 1.0.116",
@@ -2983,6 +3011,7 @@ dependencies = [
  "percent-encoding",
  "rand",
  "rustls",
+ "serde 1.0.116",
  "sha-1 0.9.1",
  "sha2",
  "smallvec",
@@ -3007,8 +3036,11 @@ dependencies = [
  "either",
  "futures",
  "heck",
+ "hex",
  "proc-macro2",
  "quote",
+ "serde 1.0.116",
+ "serde_json",
  "sha2",
  "sqlx-core",
  "sqlx-rt",

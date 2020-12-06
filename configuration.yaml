@@ -1,8 +1,0 @@
-application_port: 8080
-app_url: "http://localhost:8080"
-database:
-  host: "localhost"
-  port: 5432
-  username: "postgres"
-  password: "postgres"
-  database_name: "shynet_db"
