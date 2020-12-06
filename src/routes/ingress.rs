@@ -229,7 +229,7 @@ pub async fn ingress_script_post(
 
     if let Ok(s) = session_uuid_select {
         if s.len() > 0 {
-            let fetched_uuid = s[0].uuid;
+            let _fetched_uuid = s[0].uuid;
         } else {
             let result = sqlx::query!(
                 r#"
