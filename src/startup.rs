@@ -1,6 +1,4 @@
-use crate::routes::{
-    health_check, ingress_pixel_get, ingress_script_get, ingress_script_post,
-};
+use crate::routes::{health_check, ingress_pixel_get, ingress_script_get, ingress_script_post};
 
 use actix_web::http::header;
 
@@ -8,11 +6,11 @@ use actix_cors::Cors;
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use listenfd::ListenFd;
+use mobc::Pool;
+use mobc_redis::RedisConnectionManager;
 use sqlx::PgPool;
 use std::net::TcpListener;
 use tera::Tera;
-use mobc_redis::{RedisConnectionManager};
-use mobc::{Pool};
 
 pub type MobcPool = Pool<RedisConnectionManager>;
 
@@ -20,12 +18,17 @@ pub struct AppData {
     pub tmpl: Tera,
 }
 
-pub fn run(listener: TcpListener, db_pool: PgPool, mobc_pool: MobcPool) -> Result<Server, std::io::Error> {
+pub fn run(
+    listener: TcpListener,
+    db_pool: PgPool,
+    mobc_pool: MobcPool,
+) -> Result<Server, std::io::Error> {
     let db_pool = web::Data::new(db_pool);
     let mobc_pool = web::Data::new(mobc_pool);
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
-        let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
+        let tera = Tera::new(format!("{}{}", dotenv!("TEMPLATE_URL"), "/templates/**/*").as_str())
+            .unwrap();
 
         let cors = Cors::default()
             .allow_any_origin()
@@ -38,8 +41,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool, mobc_pool: MobcPool) -> Resul
         App::new()
             .service(
                 web::resource("/ingress/{site_uuid}/script.js")
-                .wrap(cors)
-
+                    .wrap(cors)
                     .route(web::get().to(ingress_script_get))
                     .route(web::post().to(ingress_script_post)),
             )

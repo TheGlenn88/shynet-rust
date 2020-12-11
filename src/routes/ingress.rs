@@ -303,6 +303,11 @@ pub async fn ingress_script_get(
 ) -> Result<HttpResponse, HttpResponse> {
     let site_uuid = req.match_info().get("site_uuid").unwrap();
 
+    println!(
+        "{}",
+        format!("{}{}", dotenv!("TEMPLATE_URL"), "/templates/**/*")
+    );
+
     let mut ctx = Context::new();
     //TODO: make site_uuid check for a valid site
     ctx.insert("site_uuid", site_uuid);
@@ -310,7 +315,7 @@ pub async fn ingress_script_get(
 
     //TODO: make heartbeat configurable
     ctx.insert("heartbeat_frequency", &5000);
-    let rendered = data.tmpl.render("./analytics/script.js", &ctx).unwrap();
+    let rendered = data.tmpl.render("analytics/script.js", &ctx).unwrap();
 
     // TODO: log a session
     Ok(HttpResponse::Ok().body(rendered))
